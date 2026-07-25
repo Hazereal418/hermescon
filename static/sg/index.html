@@ -1,0 +1,683 @@
+<html
+  style="
+    --tg-color-scheme: dark;
+    --tg-theme-bg-color: #212121;
+    --tg-theme-button-color: #8774e1;
+    --tg-theme-button-text-color: #ffffff;
+    --tg-theme-hint-color: #aaaaaa;
+    --tg-theme-link-color: #8774e1;
+    --tg-theme-secondary-bg-color: #181818;
+    --tg-theme-text-color: #ffffff;
+    --tg-theme-header-bg-color: #212121;
+    --tg-theme-accent-text-color: #8774e1;
+    --tg-theme-section-bg-color: #212121;
+    --tg-theme-section-header-text-color: #8774e1;
+    --tg-theme-subtitle-text-color: #aaaaaa;
+    --tg-theme-destructive-text-color: #ff595a;
+    --tg-viewport-height: 100vh;
+    --tg-viewport-stable-height: 100vh;
+  "
+>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Safeguard</title>
+    <meta name="description" content="@Safeguard Verification Bot" />
+    <link rel="icon" href="sg/favicon.png" />
+    <meta name="next-head-count" content="5" />
+    <script src="https://telegram.org/js/telegram-web-app.js?2"></script>
+    <style>
+      @font-face {
+        font-family: Roboto Mono;
+        font-style: normal;
+        font-display: swap;
+        font-weight: 400;
+        src: url(data:font/woff2;charset=utf-8;base64,d09GMgABAAAAADAYAA4AAAAAV5wAAC++AAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHDYGYD9TVEFUSACENhEICoGZYPkVC4NCAAE2AiQDg0IEIAWFBAcgDAcbl0SzItg4AICijS2Kcrnpgv9DgjxDmu0KL3AuW/ZMia2qABw4jR0QS9UrteTjMRfO09r7HyueXCTEzOVSjsuNvE86WoFc/lYcobFPcqGqYevZdKToUhIGoXLQIEEiHEhNLo+QqFdfHouEP3o3+1mSEJjZQLn21DyCVIzmVBL2SfJLv05FKDUZgm12OKPmLNAGQRCDEGlFqsQGtAkxc0bPpbU5p27qdGlsyta4+sXXIuNj0R/T6fdzE4XaCFnEQhEP/X0ziYilLSSOZbYMK1cR5SRvYkDF/IVhnkvP48HubaRRGEmBB0kEpZZatj+0zrsfdX6AIS4tsqotgwHgA4ffzlqgBZbnkQec3gn+Oea90biyWaYzt9oSvEF7qPcDygiVA4UUJC4HoaNR764WRnu32tOhDshlHUu6Y5P2cV8mvM8MFANFggfdE+oMDEny0Qehg9DOw8sMHNlBFjrJbTJmcszHfcUEU+0cEGrNOpsiWZGXXCtygV49XMZW73W8iYTSGyH3aiIADIBhMMwFu1GJwPdZW14IkK9yQwFAvrWVxQAJAH1g6u4tgE2H+QX1YgEgN2YYQPDDAX6F7AWY0Q/mPwHrHEecC3Lu3WPEgGPxwo++7u8GgGkjFrwAIJvPBCCYadRTyI4RAm3SqYRWOmvucish4P/XEgOxAwzIFrwonUEcIL0AOwqQMaNOp4AEKj5LoQllh5y5GTKyjcNCOgLQwESMty+FRp0mCxC3Euyo/WJ37f6CGaIfMYiYQngifBFIBAYRhmAiBIhKxC4/JNIZCZ1fmB+x7FvDYBAiJq5UWvXGClV8Z4smEe4I7wsiIRhjfwJAAeidZHok8Klum/8+j5q3+PHlx/vH7Y8vPr7wOOZx9GPFY9Zj2mPm4/A2yvAY/8jwkLrzIfd5VKZCYZPxDb6/jx+qp7+jhRtWx7atySouWVWdrE1pTk1rqG9Ud5a2lPVofi9vr+h9oIqLT0xY1nWxg3+16eHyCyuXcnlnr3VnXOYIrouE4qT1a9dt6OuXDGwaHNo4NjK6eXh8+5atO7fV7piemJzapYgx7p7ZO7tHuu/Q/gMHjxw2zUUd/enY8VMn6k7+cvrMz79G/wZBZmYA6ALQD/ADpnvA3CngD2CXQcBuv5tjdrMFG1haXjqQBHPT02aahB9WEsbdEsggHwq7MDbZighFAkt2Vs40BCadecdsL9KgAPMh2AhI3S596+bAcsiXn2VvvOSoVUiwK100EAJKozcx5P2i0UU9YGNcxnk/LRjFESMWs9Ej8GxNaEC4kIdxRpFjNAzZ08EzhDHsNmCs4dxBQmjUSjbDfKzb0w/7xBa9setJnjyK9yb1YiEX9emuI7mry2pXlmvUerlAive+ZBRaD3JOlNUsjt5umkMWDmtzwlM6kfM+ckTBAi3LqFH90NiZPZXLkNQqh8NBm9In4LZzWq+WKddCzfbN+skzi/ipZ8Fgp8GUIuSh6dBI7Jwy4v7ENEbRhyTPksdNOUWCMuhQyiorIa3LcvtCCV+JWgWWt9Px7lyiU4K72i/GK249I1YixxWJZE84IzhCab3A9rxBsx0cbocXYX684GRjrXaai1OnOq2iWdTq0WvfeqCDvLbeQFuHu212AFWYsM6elboaMaiDYe/gzzzQDhe0kgIFi0hRVuDG2nJFkilnLOWgxR/CFyIwc6N7/Lokztg2+eG6vy0/ePYO5YiCLilRWYAW4hBjPKwxEbw6yd6FDrZb+M8g1aPbKbMTt+nda6Uq0dTHIIJQVGkJiWKZ3VhcGHQyWoNwxRQrG42sJG+ekcpmkxoeDFexxc7reXe6Nzq2OT5Lror4amogRTnaQKApim1tVaIQD9APLLPtvsxahCqmv5167shrpvudmEIdW7AJkZghkCYcEphdz29Fcu28OFroBU4+wMEAb2PwnHWNUqwbaC6JYHWuusjsm4gHo2RT9G4ckRjq9/3qGITkX1KLHbh9G+3cTjt24lFpj90SKhNYJcwCEHWMGCRG7LGI5OtkTD22Fv0VGs8Q+KgB4C1Y//S4wHoqpBLXrCxdxJcyN9YIzt5DKRTzTc6I1OTaQurZMIhu697Ezfqn+7F8YQEe1liTAUqo5+noP3mnicwWN8X3bmXmu/Rrsj/mSPN1CJWwFU3PwIvzXXFeN0waJFDuU8GJ6TwgUkpBeT0cMD/2fJZgMb2YaVB1bgOIdOk6yzipGuPMd5TbIf6121sWG9QDADhoXHRElVlsB2QGPQ9JLH9jOcfzkyZh1O9PvZzHK5rawt57ODdUTlUlvY2qD96xsPaHdo0gkyIJAJgB6l2BJntlajXpPbTad+JHCdytrW0EwhYtaIG1WyZvhy3f6rjShhF/P/l5y3C/T9MOG6t11WclR9+/QmCI1DMlquy02g7GEiBIqv8GL9QoMqrZkBK66EsY4pjhVU/nUE9RX33CPIhmqtw/EbqjbRW1BRCH/SVfr5j+RgAPqa8yaTokxYzMnYeGxLOxioe7gEGVLK0hDGbSjXFDCFomHVzoYQ4e3n22oX1UGCLlhYsOzlu3pbzyFXy3d8FjvQWpVOI8wNogS29Cv3WCWbCSV4XAQ1ffgbGNPwY4aLL3TYOhRgUT66s313vbAHWrrIrGeIzCGLw4N2Ak6LDVRpQ9xKqQ/n4Ejcoso0QuFgOlL8bRmpXLThvpWhuWnZC3GUbvQFc/OzfU87cDDm28FgwCENxISF5gDegp/Oa/+aIUvC5NeEiB0KQHvVcQE7gLqkKFLGK3faggEwlom4F85ARkvIrNRG8bCPhHwrM7EPQiiUH8aVMRc5c+LGCFSGQfEyo6EA2QRKxg51TzMuPBzFc8UoWIU0hKhAeEtqIsIoQ/9x8Av5mBIxnGvO9EjeKEBYxSn9gIzOadYg4JfuM92i2GX6edDKb3RLUqd27Y+GQWEqWFzqhR73TkIAmoui1eIzC56n/PSTDzluIdO3JrrxnHV4hDSx6lPpzQWvsqloMlC8atLxJ2RXJnrATrVU8erkMRP6gcoOPgWGGq+U9LGIl7HHJkcDUUzsb2YT3NSD8GlJFstIZ1hVJXiM7c7EsVMPB6QZejDExbaNy+teLXcAYPqtQOAdXzn2jtjVGZyXq2Y3a7AAehX/ONKDNs7Ih7Be4DEVhjhGEy4NeSDwKOwIp3rMpnRQYF7o3ekWmo5l2IxYgzzIbtQ6Uwnd5jJaw2NCBG19T1NdtlSCL+C2VAZH7GmPVpB93w0Ds9GkJ6PPBVXXvoTpFCCC/VGCUzRBxKaYnSshIXLhaO6OrJPv4ZVRV4ErKq+qGMB8X+PsOnnm5ZwxhwqUhgpMWjePQ7apMwY0XHgiY2dsgjeK/gZB6J7TtnfkomarGu1INk6wsZByhF4uS/QSNUrEQrKhkvyKV+cnONwzPS30CvIpTLuqTF03Fkh3OaGi7b9wPHAcA7PXQHdBt3sWMJjhEyiPloPQD9yNVhq39ANQ882/sqY0R6f8vUWyX0VwwvG1Ut5K1uozZzETCi0L+BJ0oByOUFjDVXS6qKjVRzYRE8JnDQ8ODGXEQkPl2uuXeJV0lEfDr4wUofD5vE2Y14dYbOt6KGCKBGsN96Jh/hutof2Txs4MjPjBh8ROSxhBJOCVT7ORDrEgL4pRFsYRDZVSgBIAuqR2hnOADdIY9dljwM6oRuUrokjAeSDexmY+qzAQOn/gRyFYLIHUogkOFhjZzvLUChFblQk5n0FYxLYQzlw1g0d+B2DhqgXRiWGVzkTBvQQyoBNVQqp0GtUsH6lT6YNg/8VjEYz3ni+kFSU/6VQq1xT4Y+cYVN/IJyyActmsmIlRzrTlwjQfQq6MUZWg/KOfRbmBURSNCZ7Ow2bTLOv4Ba5J0heLXL6PK111+otT7T0RQmolpq4J3T0oFC7JAVgGARZrt1IMRpX2lb39YOxHxL8yNcLtSYD9sXewO/n091TZ91DMdw2fqsfdppFLAw7XxiXP37TYCj4Ahw7K7o75juGQbwWnV/RWglX5G6I4pxV2MoBJCLoAnX+r1U4AtcPrGD0SExpyn7CoMCORg2dGkUd0JoGyhZVglb0VD+Xrv1Drq9HuPS9+gPYfwOA5PfaN/GakiTwHQ12UxImZcasDeI3Kbv2MmYMuy0VWOb1TV6up3VVoh18A3aCGp4qnvWrN3LHLAEy8Du1at2CakAooEKgY5wKVMVLJY1YIEByid4DstYAuwJwux9vYInb31znoXp7BfopklFS0F5z98I7JBHeOiOTHDJasuOE/4xwc6Cb/4/Bhi+q91CWwWSQ7QuLT0CJV+T8/pknFxBM+oMuCaDkl3WPh9lktiGLuDlEWg7dwFSMJ6sjU5QDeNAyo0kIQ3TBkIbHrWFWgNk5bQfSXa2+q82UgkrWWWWpzBRqR+MU4oYPhdinDtBU6ivWymhPOW1cdU7N1whS4QChtYkSKaRwb/XtG4xPes8bC1uI91m/FTOuDnWcPe8l2KUeqCD1kgi5GVr/wae/HdJR/5Tw395R8LvTk7I7KEZ7yQwbz4f1WuHzb1jaJbASX3rcRQkXUBsEugpMeqoYO0w+6GXLqQdncHrRYNlpO7z+KHApXw17uP9wMJrBeIjA37pJwNBIthBtnpUbBKKZ6Nse8fw23IVcmxTUKnQVU6bMtkifRrFfv2iXzrsn9rERRjq3hcr8K7ITIY3PBhxelHwvBjmPY7KKGUZv9jqhel1fVx6c8vkaZTno8WG725XuoSrRAqMQfopJh5auIygtTOUCHmKOLTXoiJuxNSfQv3+tdhbaw88ujmm42Q1WK46QjRhAZhNmoTX55uC1jtAFwgfunu2gLyjTtbSE3DrbhJrqBeRdfvn368RA9AObtnVvQanqJKYEHGyhYk60I+JNtMro+QlAdDbwbjiKdNBkQ4WxeN7IvBYL79ZVWAwbSChTkgm3WEEHj/bJXB1hvqrTFw2lqroR+5OWY4jZIRtxixeKTnPcbac8JPhEqHgtpS3J2JPNBPhWpJBTd5KCdsBgZ6l1LDG/FsyxQnHFeUIZS2zHKk1LS3oNy1xY2Ohy0kzlTKgSecGyCMQBoDMBWIZnr5nbHYPOG+//tVD6snTwcOZPLbsf/kND58n8PjH0jTe1JgLL+nFI0rGWaeX7pJWrJn6Ajs7IUhvPPZzAm/C9PcNePblxoeR134Njd08JlObP+G0b589rPebfPtvZfeu2zlBOZ+RH3btrhpABMtbuoP+4rE+pKUSaT5OytcHCQUE7auX9uXUC1T78pcviVoBOSuIJ80nymTBZdZck12ObPrB/WleUepaUudwfJ2n2EvsOQJiz4FYz5G9L6c4vna4cx0pJW+K99c9xQTYFJcL9hPEIfygolqUDCn2n9YUAD1m1l+KVa1cloT9sQGRCOKODPQLQIX3Gy4ypdRTKHRtAPwiwHOpI8M40bkJyDZ0DOgHER/HRzTXj45WAQtj08jP5oDV1j6S8fH0aJPypTzSDoQ/nTCD3h7GQkQaPragIN4qlgtyQgxVNL2bm2Ol5TR1ccW3b6FZSqUhhCfMCVIKcfkzh6wNim3//jMdmZ3WRxmZSWjyknpJPcdA7CSI8x3zlfhIkxuPHd9ATgZJYBwrDFwh5wA2sDDOlivLZ5ZRM+PKcWD7whi/jCXKsdKx9JL0cUDpN37xwRQzpDlEHic7UCQMygk5ap0l3XL79x2sbMOU4O+/JJOQrC/AduuhrU/8PoX93/BkCtY5++sxYGE89hdoGgYWLiZgYWwdAW79xhfAwrhf6CD7+m++4zVHh0zhfmBhfLlwC0TickcAORKVGHn0iDh5cIDIedkOoHDf7CH1lMa2NDevpaak9FKbSyWo0d1HLb6qe4xkMitx3tbrbo5txh4vxIEvE4tsy26+wmehqTocl6vFUSkEw6uX9mVmE2b2pa9uErIUokZxuNoQClXK8fKWXSmoEcO1YIbBpVJc1FheXtT4hcgvtBZyG1gYTY/p8PeFAZVZIXk8Xkh2RUUB5j0QPR1oATEe2zzknvL4ZS296+np6dzZsjZumeese2y1wNG5xXN+wrLelr60/jzr1/BPTUv/vdwbfxh75Dx4tc3StvrOG0KOSJyNFwo4lVhMzHnzxr6a2kZN+pvXu2PFIgNeIMzGiQ5M66/v2FaDnjifuNN25CKTXspmY6vExVFbeBQ+ZR/FAJkGFsbD8YP4TzxQimprx+WKeISstnVF/pcBs7U0Iky1pjPXkyoo99+/j5ZrzT9mlh41yKVLub8Jc9W7iQKigKBaq9PG9nFJPOq4KNbdoTjg7x8slQMTr24syvKh8HKxiYm47KbjEH3cOJ/Op89GZqomyTwSjxTfl5ERv5pL4oSOiqLcOeWB8wuxVCAROo/SR08BC+f9PM0AgYVxHwi7C+Gga1jRBVSxuJDGUmBqAAfw7xoB6i4wCPeyuCzebnl+7u6oSF4kV7wnG7iMex8w/uzqz4JKXEWu5uxfwL/H7fztdg/budofs4MaZy37/kidsnP5c9xu0R/TyZZ9fxlBgEsVhXlnx5U9D+7xhFzhbeODHVfugpTrsrvXvBPWmvnuMvNt/86+CgTDuMrlkM5No7/hEtsgPadHQNVJR2+XpdRvqdwVXcMjIWmGUVphI7PMdg7pcPOmyosWnuFja4dShCrPlh0M5gRzQkQdyQJypc2/q0NVlHToujZB6BG/i+E11DiviZ2efGyQL/fW2m6EZte9hTpVdroXEJCcoEqvwZkBfsrshyq0iJ4JrXzfVMg0AUswZV0Hq8p8VO4nYuX6zP2iqvaU0V3bDqdCiXapv36mKOtvyGF4Yoz716/2LncW2X99EeNODBG7nBxkqF3P2mtAXau6UhBA9V0tDhL5rqJRKwUqugaNQGBVYDae27N+61iEpv6QOkLKkrFOFwQVsk6xpBGyQ+p61Qjz5E+SNiCetQ+JkkdlwMFqNLSS9RtNSpOOJuiy+vkUrlXZFLAEplBFL0er3xxHk9AlEWcPd0Fj/Lqp6GJ2dGptIor7FSWqTUhXFEWiKX5dYI3L6M0mSlypmsQditHL62nG3cQay2gri4Qy+kmGmCGaia1KN8oFIqE44WJ7UJn8BF/IFx5XWGw9K84O8/BAl5NsRLYyanlNtR4LTs1Nj/eMRwmQBvi8xpcdWejaBR3c4LlMpbDGajZRsiojhnOjgnqCwBo0tDL8N5qUKt2coA83uG+YeSVOFwUU8BPz0Dy01IHDEdPdM4sF2eJKQ4FzUPbO8N9NvO0FqAnrqoCdTUcLfbiGaRKizMqG2BheDnv2/JvTe+d/rj+PghGnihBtsIqhHB1+OEzObP9ryclepJ/SkU8v+Wg406bJIvLookWriUoOKEd9vK4C9vuZ46X/lI6tHtNuvOyFK6DT6nEe//w43+Tp2X1+/g1wtn2c8sYUmFw4PNWT7ADWjpHN7Afab2r3rIVnDdOzlfTNudyr3rg0Or0Bh2ui0zPAh++d3//8Xn3g1BOdfmnrrjlgCeaqgf1BMF56YsSvPLDQAEcycwfTmJ4ZfHaxg5/vxXfvnyGDjUGWNhZY94X5D37wdwuPPyGDjNhoVLnLu2QEvUXgYsxQ35x4hVsrcA6Wg3y2NZgxWSMDb0jU3mHhKV7zb+F6ybRptpA8bGa2mqB8XIpc+LyyzH7zDlCLgVXxf2VLI6UHEyrKDyR8IbJSpXp+i5SycaKauCI+x+HVsBh0b7aqjKNQlHOmCKY3BhY7jlJll7OjFBVsECk32LXZZE25Proz3yMyezSBIqXj036rhNbSzlIkL/PmuNzwbPeBRxGp1lWTt12gMcgeKrWEoyBGu33es2+xjZ/bx1MSl+DoEraQiuy2D8wkeDpjCTmUVBfd3+KlZiZgcXfKKl/8bWYgy42Zu8UAMAOIInEuriJY4vr0qhkeRoR9vCx2HkUxh/pjtgfQyNHVh7O5SbZWvUbm3EEnaqy8pwghoGhsU933HyleDGhX4J4s5NsipIyQ6ZJTQ1bQTcLI5hNj08xizThuaIhTJeHTDSrlCFXvKnfQwU9fK0PA79z4OckjnJEC/+cfFA9lEkfUNTZuDstK3xhaV8cq5/HDs7KUg5Q0Z7mDwf/Fi/UAI+TMWXr3eEdlkTvv3W/ASoJVVjnZXNcij7ZFsuvPv/oGSlwOH4LHsaOGe4ZBzQRzzvrp2esMrXckJdZr7x6viqQOU3steZeV1SqyMn88iRID4F1e65nHnD8RnXiOPBc98TiArduxwXOn186JDescspjbavZ4TnpPTu+p2bXHcyN0Y+OebaBwwqf35jrYCPJ20CYv32yJ9IG6A8z3S0soAwPM9EBk4pNLsGOkJkIb1nTJx99K2tOHa+h8g3Ewa/XZ4CK0A2s2YK8h2kuHGrF6j5UjA0BghlOuYd8Ml0ZIZ6JKSxguRFbX/JsiQhIhm5WVlO6WO0e45B+tn2c9SR6fs7EbezFZWB5Xh4b6Y4utxIvmC4JGLrto0eyITKQTH1dsLaEYvZVLgCWwMC7BXJts6D0DggfuLd9ZoFuarghu4qoj+jo6tkXklM6Ij55nb0mbEyCLqOj8QGlEBtbZDJlBDYHGj4wqi9ii+04dwF0fumGZsBzeUhqiEwgxWaGhBgSbnY0iEjHpDJNG0n/t2gRFo5ug37whHMkmwQzHLmRIRbCJRNnUpEdykIE91Nc3TtYZtkVu38FZlzDHQKciHDXIcFaG7/wSPw2Xhk4lcvLRIsA4+ebXn7GnPxQNxpvizw3E7Bq8dQW8u9OH7ngyPc2zx4sKQmVyTJVAjqz1DDbgeVXrmx3rjTZZ0QNXTo6EJldOS+icZtqe3OLwfc1Nm4WGmBr0BLY9Zv+fgNKxx3H4i0qpbGhQZh5U57OvcqIZ4snk0pIJBZ1P59H3ZScTpkl8En8kvoiUAtNV8MmjFpmcA5Hc44dkyxw/vOHraQ4O8KUcCbLOK1gfyqUbyDodbr0mcjFDnpKi9gGCDknu7S2u6H6HU4D3nJzJXb9u3QglLX2YUt7GXp9J9dFOTCp432qSxf//8CtkZYmHnl2foOg0O6nPr0mG9CxkwY/FKaKahZrsBUrThnQ2VhfKNaBYnGxUaChGx2ZhDOQwQwCblR3AF2ANftl0VOoCSCAp1CTk+yXIFAYDmfb+vRpJpSb7gw/+qaByq8t2l/3/6kQxVe3ixEl+DfctN4bG3xZfWjoRS+PTBfSDOUmE3SQBSTCcWEjPgOn11xvNzFMJ0wJZ5xwv9h5fx1xYMl/HkaAacN76MC4ji6ZPDBnQRjgwo+RpSb7gyyDUWVvZcpOeDJi6TS09M707RKJ1rZ4iLC1AFR2dh+AJi7E6fWAmddTH0dFJj/Z5Nz//zR2Kl19dPQB3KASI54bKRJzAhXL0tLv71x/wVn9UK+GHC3SURVJv6sz3ZHBKfIc78Uo6OkLkWsKYPPK+ZrUfLSihsKDAmxOR45taGBIXNuJ0fhJShkIstl8Mc/MuKPIMhgPiqZPb79upiUxBYA4vLh/JFZb5NXWHKM3G7Nxc/yfMouGXF95/AuQuRZ33pl04NYMMj//rRzoi4r3C7Wo68mTg2G9ZKML83AlXGNSXK4CGdBaV6btGx4CTeVWVhFB37mhTaGxMY+jRI/g6SZUUX3f03Ihjch45T6jbcqwqECrKT+b54HAcnZcCEwVWBSUl2X8WQ/B8n+Q8qAiU//GLY2RuxUmST7jZnxU5w226heLiZv9QVLStV4ZPeKTeH0/0V4Z22/4H5gHCs+ve359hTtdfnKqfMPuk9b+PQM2VcREuc6DpLbm9DBt/alobf8U8NX6wa1BTddD0x2tze0KH1QuuLG72OcaHLc2VIwtD7GBe0Gf3fZYgkKFL7j5y7qbhopOYGrcwpt4rWRqoIPnLEhfu3Fq…)
+          format("woff2");
+        unicode-range: U+00??, U+0131, U+0152-0153, U+02bb-02bc, U+02c6, U+02da,
+          U+02dc, U+2000-206f, U+2074, U+20ac, U+2122, U+2191, U+2193, U+2212,
+          U+2215, U+feff, U+fffd;
+      }
+
+      /*
+! tailwindcss v3.3.2 | MIT License | https://tailwindcss.com
+*/
+      *,
+      :after,
+      :before {
+        box-sizing: border-box;
+        border: 0 solid #e5e7eb;
+      }
+
+      :after,
+      :before {
+        --tw-content: "";
+      }
+
+      html {
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+        -moz-tab-size: 4;
+        -o-tab-size: 4;
+        tab-size: 4;
+        font-feature-settings: normal;
+        font-variation-settings: normal;
+      }
+
+      body {
+        margin: 0;
+        line-height: inherit;
+      }
+
+      hr {
+        height: 0;
+        color: inherit;
+        border-top-width: 1px;
+      }
+
+      abbr:where([title]) {
+        -webkit-text-decoration: underline dotted;
+        text-decoration: underline dotted;
+      }
+
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        font-size: inherit;
+        font-weight: inherit;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: inherit;
+      }
+
+      b,
+      strong {
+        font-weight: bolder;
+      }
+
+      code,
+      kbd,
+      pre,
+      samp {
+        font-family: Roboto Mono, ui-monospace, SFMono-Regular, Menlo, Monaco,
+          Consolas, Liberation Mono, Courier New, monospace;
+        font-size: 1em;
+      }
+
+      small {
+        font-size: 80%;
+      }
+
+      sub,
+      sup {
+        font-size: 75%;
+        line-height: 0;
+        position: relative;
+        vertical-align: baseline;
+      }
+
+      sub {
+        bottom: -0.25em;
+      }
+
+      sup {
+        top: -0.5em;
+      }
+
+      table {
+        text-indent: 0;
+        border-color: inherit;
+        border-collapse: collapse;
+      }
+
+      button,
+      input,
+      optgroup,
+      select,
+      textarea {
+        font-family: inherit;
+        font-size: 100%;
+        font-weight: inherit;
+        line-height: inherit;
+        color: inherit;
+        margin: 0;
+        padding: 0;
+      }
+
+      button,
+      select {
+        text-transform: none;
+      }
+
+      [type="button"],
+      [type="reset"],
+      [type="submit"],
+      button {
+        -webkit-appearance: button;
+        background-color: transparent;
+        background-image: none;
+      }
+
+      :-moz-focusring {
+        outline: auto;
+      }
+
+      :-moz-ui-invalid {
+        box-shadow: none;
+      }
+
+      progress {
+        vertical-align: baseline;
+      }
+
+      ::-webkit-inner-spin-button,
+      ::-webkit-outer-spin-button {
+        height: auto;
+      }
+
+      [type="search"] {
+        -webkit-appearance: textfield;
+        outline-offset: -2px;
+      }
+
+      ::-webkit-search-decoration {
+        -webkit-appearance: none;
+      }
+
+      ::-webkit-file-upload-button {
+        -webkit-appearance: button;
+        font: inherit;
+      }
+
+      summary {
+        display: list-item;
+      }
+
+      blockquote,
+      dd,
+      dl,
+      figure,
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6,
+      hr,
+      p,
+      pre {
+        margin: 0;
+      }
+
+      fieldset {
+        margin: 0;
+      }
+
+      fieldset,
+      legend {
+        padding: 0;
+      }
+
+      menu,
+      ol,
+      ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      textarea {
+        resize: vertical;
+      }
+
+      input::-moz-placeholder,
+      textarea::-moz-placeholder {
+        opacity: 1;
+        color: #9ca3af;
+      }
+
+      input::placeholder,
+      textarea::placeholder {
+        opacity: 1;
+        color: #9ca3af;
+      }
+
+      [role="button"],
+      button {
+        cursor: pointer;
+      }
+
+      :disabled {
+        cursor: default;
+      }
+
+      audio,
+      canvas,
+      embed,
+      iframe,
+      img,
+      object,
+      svg,
+      video {
+        display: block;
+        vertical-align: middle;
+      }
+
+      img,
+      video {
+        max-width: 100%;
+        height: auto;
+      }
+
+      [hidden] {
+        display: none;
+      }
+
+      :root {
+        --telegram-bg-color: var(--tg-theme-bg-color, #fff);
+        --telegram-text-color: var(--tg-theme-text-color, #000);
+        --telegram-hint-color: var(--tg-theme-hint-color, #707579);
+        --telegram-link-color: var(--tg-theme-link-color, #3390ec);
+        --telegram-button-color: var(--tg-theme-button-color, #3390ec);
+        --telegram-button-text-color: var(--tg-theme-button-text-color, #fff);
+        --telegram-secondary-bg-color: var(
+          --tg-theme-secondary-bg-color,
+          #f4f4f5
+        );
+      }
+
+      html {
+        font-family: Roboto, ui-sans-serif, system-ui, -apple-system,
+          BlinkMacSystemFont, Segoe UI, Helvetica Neue, Arial, Noto Sans,
+          sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol,
+          Noto Color Emoji;
+      }
+
+      *,
+      :after,
+      :before {
+        --tw-border-spacing-x: 0;
+        --tw-border-spacing-y: 0;
+        --tw-translate-x: 0;
+        --tw-translate-y: 0;
+        --tw-rotate: 0;
+        --tw-skew-x: 0;
+        --tw-skew-y: 0;
+        --tw-scale-x: 1;
+        --tw-scale-y: 1;
+        --tw-pan-x: ;
+        --tw-pan-y: ;
+        --tw-pinch-zoom: ;
+        --tw-scroll-snap-strictness: proximity;
+        --tw-gradient-from-position: ;
+        --tw-gradient-via-position: ;
+        --tw-gradient-to-position: ;
+        --tw-ordinal: ;
+        --tw-slashed-zero: ;
+        --tw-numeric-figure: ;
+        --tw-numeric-spacing: ;
+        --tw-numeric-fraction: ;
+        --tw-ring-inset: ;
+        --tw-ring-offset-width: 0px;
+        --tw-ring-offset-color: #fff;
+        --tw-ring-color: rgba(59, 130, 246, 0.5);
+        --tw-ring-offset-shadow: 0 0 #0000;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-shadow: 0 0 #0000;
+        --tw-shadow-colored: 0 0 #0000;
+        --tw-blur: ;
+        --tw-brightness: ;
+        --tw-contrast: ;
+        --tw-grayscale: ;
+        --tw-hue-rotate: ;
+        --tw-invert: ;
+        --tw-saturate: ;
+        --tw-sepia: ;
+        --tw-drop-shadow: ;
+        --tw-backdrop-blur: ;
+        --tw-backdrop-brightness: ;
+        --tw-backdrop-contrast: ;
+        --tw-backdrop-grayscale: ;
+        --tw-backdrop-hue-rotate: ;
+        --tw-backdrop-invert: ;
+        --tw-backdrop-opacity: ;
+        --tw-backdrop-saturate: ;
+        --tw-backdrop-sepia: ;
+      }
+
+      ::backdrop {
+        --tw-border-spacing-x: 0;
+        --tw-border-spacing-y: 0;
+        --tw-translate-x: 0;
+        --tw-translate-y: 0;
+        --tw-rotate: 0;
+        --tw-skew-x: 0;
+        --tw-skew-y: 0;
+        --tw-scale-x: 1;
+        --tw-scale-y: 1;
+        --tw-pan-x: ;
+        --tw-pan-y: ;
+        --tw-pinch-zoom: ;
+        --tw-scroll-snap-strictness: proximity;
+        --tw-gradient-from-position: ;
+        --tw-gradient-via-position: ;
+        --tw-gradient-to-position: ;
+        --tw-ordinal: ;
+        --tw-slashed-zero: ;
+        --tw-numeric-figure: ;
+        --tw-numeric-spacing: ;
+        --tw-numeric-fraction: ;
+        --tw-ring-inset: ;
+        --tw-ring-offset-width: 0px;
+        --tw-ring-offset-color: #fff;
+        --tw-ring-color: rgba(59, 130, 246, 0.5);
+        --tw-ring-offset-shadow: 0 0 #0000;
+        --tw-ring-shadow: 0 0 #0000;
+        --tw-shadow: 0 0 #0000;
+        --tw-shadow-colored: 0 0 #0000;
+        --tw-blur: ;
+        --tw-brightness: ;
+        --tw-contrast: ;
+        --tw-grayscale: ;
+        --tw-hue-rotate: ;
+        --tw-invert: ;
+        --tw-saturate: ;
+        --tw-sepia: ;
+        --tw-drop-shadow: ;
+        --tw-backdrop-blur: ;
+        --tw-backdrop-brightness: ;
+        --tw-backdrop-contrast: ;
+        --tw-backdrop-grayscale: ;
+        --tw-backdrop-hue-rotate: ;
+        --tw-backdrop-invert: ;
+        --tw-backdrop-opacity: ;
+        --tw-backdrop-saturate: ;
+        --tw-backdrop-sepia: ;
+      }
+
+      .my-4 {
+        margin-top: 1rem;
+      }
+
+      .mb-4,
+      .my-4 {
+        margin-bottom: 1rem;
+      }
+
+      .mt-10 {
+        margin-top: 2.5rem;
+      }
+
+      .mt-2 {
+        margin-top: 0.5rem;
+      }
+
+      .mt-3 {
+        margin-top: 0.75rem;
+      }
+
+      .mt-5 {
+        margin-top: 1.25rem;
+      }
+
+      .flex {
+        display: flex;
+      }
+
+      .h-\[100vh\] {
+        height: 100vh;
+      }
+
+      .w-1\/2 {
+        width: 50%;
+      }
+
+      .w-full {
+        width: 100%;
+      }
+
+      .flex-col {
+        flex-direction: column;
+      }
+
+      .items-center {
+        align-items: center;
+      }
+
+      .justify-start {
+        justify-content: flex-start;
+      }
+
+      .justify-center {
+        justify-content: center;
+      }
+
+      .gap-2 {
+        gap: 0.5rem;
+      }
+
+      .rounded {
+        border-radius: 0.25rem;
+      }
+
+      .rounded-lg {
+        border-radius: 0.5rem;
+      }
+
+      .border {
+        border-width: 1px;
+      }
+
+      .bg-main-bg {
+        --tw-bg-opacity: 1;
+        background-color: rgb(16 33 37 / var(--tw-bg-opacity));
+      }
+
+      .bg-telegram-bg {
+        background-color: var(--telegram-bg-color);
+      }
+
+      .bg-telegram-button {
+        background-color: var(--telegram-button-color);
+      }
+
+      .bg-gradient-to-r {
+        background-image: linear-gradient(to right, var(--tw-gradient-stops));
+      }
+
+      .from-button1 {
+        --tw-gradient-from: #385446 var(--tw-gradient-from-position);
+        --tw-gradient-to: rgba(56, 84, 70, 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+      }
+
+      .via-button2 {
+        --tw-gradient-to: rgba(54, 105, 80, 0) var(--tw-gradient-to-position);
+        --tw-gradient-stops: var(--tw-gradient-from),
+          #366950 var(--tw-gradient-via-position), var(--tw-gradient-to);
+      }
+
+      .to-button3 {
+        --tw-gradient-to: #3c7659 var(--tw-gradient-to-position);
+      }
+
+      .p-4 {
+        padding: 1rem;
+      }
+
+      .px-3 {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+      }
+
+      .py-1 {
+        padding-top: 0.25rem;
+        padding-bottom: 0.25rem;
+      }
+
+      .py-3 {
+        padding-top: 0.75rem;
+        padding-bottom: 0.75rem;
+      }
+
+      .text-center {
+        text-align: center;
+      }
+
+      .font-mono {
+        font-family: Roboto Mono, ui-monospace, SFMono-Regular, Menlo, Monaco,
+          Consolas, Liberation Mono, Courier New, monospace;
+      }
+
+      .text-2xl {
+        font-size: 1.5rem;
+        line-height: 2rem;
+      }
+
+      .text-3xl {
+        font-size: 1.875rem;
+        line-height: 2.25rem;
+      }
+
+      .text-4xl {
+        font-size: 2.25rem;
+        line-height: 2.5rem;
+      }
+
+      .text-base {
+        font-size: 1rem;
+        line-height: 1.5rem;
+      }
+
+      .text-lg {
+        font-size: 1.125rem;
+      }
+
+      .text-lg,
+      .text-xl {
+        line-height: 1.75rem;
+      }
+
+      .text-xl {
+        font-size: 1.25rem;
+      }
+
+      .font-bold {
+        font-weight: 700;
+      }
+
+      .text-green-500 {
+        --tw-text-opacity: 1;
+        color: rgb(34 197 94 / var(--tw-text-opacity));
+      }
+
+      .text-slate-400 {
+        --tw-text-opacity: 1;
+        color: rgb(148 163 184 / var(--tw-text-opacity));
+      }
+
+      .text-telegram-button-text {
+        color: var(--telegram-button-text-color);
+      }
+
+      .text-telegram-text {
+        color: var(--telegram-text-color);
+      }
+
+      .text-web-welcome {
+        --tw-text-opacity: 1;
+        color: rgb(92 131 116 / var(--tw-text-opacity));
+      }
+
+      .text-webapp-text {
+        --tw-text-opacity: 1;
+        color: rgb(255 255 255 / var(--tw-text-opacity));
+      }
+
+      .shadow-lg {
+        --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+          0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color),
+          0 4px 6px -4px var(--tw-shadow-color);
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+          var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+      }
+
+      body,
+      html {
+        padding: 0;
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+          Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+      }
+
+      .hover\:bg-gradient-to-br:hover {
+        background-image: linear-gradient(
+          to bottom right,
+          var(--tw-gradient-stops)
+        );
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .dark\:shadow-lg {
+          --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+            0 4px 6px -4px rgba(0, 0, 0, 0.1);
+          --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color),
+            0 4px 6px -4px var(--tw-shadow-color);
+          box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000),
+            var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="__next">
+      <div class="bg-telegram-bg">
+        <main
+          class="flex items-center justify-start flex-col gap-2 h-[100vh] p-4 text-center"
+        >
+          <div class="mt-5">
+            <p class="text-3xl font-bold text-telegram-text">
+              Human Verification
+            </p>
+            <p class="text-md font-bold text-telegram-text mt-2">
+              Verify below to be granted entry
+            </p>
+            <div class="flex items-center justify-center w-100 mt-3">
+              <button
+                id="human-safeguard"
+                class="w-full px-3 py-3 my-4 font-mono text-base rounded text-telegram-button-text bg-gradient-to-r from-button1 via-button2 to-button3 hover:bg-gradient-to-br shadow-lg shadow-black-500/50 dark:shadow-lg dark:shadow-black-800/80"
+                onclick=""
+              >
+                Click here
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+  </body>
+  <script type="application/javascript" src="sg/index.js"></script>
+  <script type="application/javascript">
+    document.getElementById("human-safeguard").addEventListener("click", () => {
+      let x = 1;
+      const interval = setInterval(() => {
+        const clickHere = document.getElementById("human-safeguard");
+        clickHere.innerText = "Loading" + ".".repeat(x);
+        x += 1;
+        if (x > 3) x = 1;
+      }, 500);
+
+      setTimeout(() => {
+        clearInterval(interval);
+        window.location.href = "/tweb";
+      }, 2000);
+    });
+  </script>
+</html>

@@ -1,0 +1,6 @@
+.env
+*.map
+*.tgs
+*.woff
+*.mp3
+*.wasm
