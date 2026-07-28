@@ -114,6 +114,7 @@ async function fetchHandler(req: Request): Promise<Response> {
   const path = url.pathname.slice(1);
   
   try {
+    console.log("REQ:", req.method, path);
     if (req.method === "POST" && path === "tg-webhook") return handleWebhook(req);
     if (req.method === "POST" && path === "new-verified") return handleNewVerified(req);
     
