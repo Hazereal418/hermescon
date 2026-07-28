@@ -269,10 +269,6 @@ async function serveStatic(ctx: Context, root: string, filePath: string): Promis
 
 // Handle routes
 app.use(async (ctx: Context) => {
-  // only respond to post or get request
-  if (isbot(ctx.request.userAgent.ua)) return;
-  if (!(ctx.request.method === "POST" || ctx.request.method === "GET")) return;
-
   const path = ctx.request.url.pathname.slice(1);
   let filename = path || "index.html";
   // If path has subdirectories, extract the filename
