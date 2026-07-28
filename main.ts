@@ -4,6 +4,13 @@ import {
   InputFile,
   webhookCallback,
 } from "https://deno.land/x/grammy@v1.30.0/mod.ts";
+
+// Polyfill: trick Oak into detecting Deno instead of Node.js
+// Without this, Oak v17 uses http_server_node.ts which breaks ALL responses
+if (!(globalThis as any).WebSocketPair) {
+  (globalThis as any).WebSocketPair = class WebSocketPair {};
+}
+
 import {
   Application,
   Context,
