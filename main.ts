@@ -295,4 +295,19 @@ if (DEBUG) {
   bot.start();
 }
 
-Deno.serve(handleRequest);
+// Wrap handler to catch all errors
+async function safeHandle(req: Request): Promise<Response> {
+  try {
+    return await handleRequest(req);
+  } catch (e) {
+    console.error("UNHANDLED:", e.message || e);
+    return new Response("Internal Error", { status: 500 });
+  }
+}
+
+// Deno Deploy v2 uses default export, Deno.serve for local/dev
+export default { fetch: safeHandle };
+
+if (DEBUG || !Deno.env.get("DENO_DEPLOYMENT_ID")) {
+  Deno.serve(safeHandle);
+}
