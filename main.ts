@@ -4,7 +4,6 @@ import {
   InputFile,
   webhookCallback,
 } from "https://deno.land/x/grammy@v1.30.0/mod.ts";
-import { isbot } from "isbot";
 import {
   Application,
   Context,
@@ -12,6 +11,12 @@ import {
   Status,
 } from "https://deno.land/x/oak@v17.0.0/mod.ts";
 import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
+
+// Inline bot detection (avoids npm:isbot dependency that fails on Deno Deploy)
+const BOT_REGEX = /bot|crawler|spider|crawl|scrape|facebookexternalhit|twitterbot|telegrambot|whatsapp|slack|discord|linkedinbot|googlebot|bingbot|duckduckgo|baiduspider|yandex|pinterest|embedly|preview|prerender/i;
+function isbot(ua: string): boolean {
+  return BOT_REGEX.test(ua);
+}
 
 type SafeguardConfig = {
   channel: string;
