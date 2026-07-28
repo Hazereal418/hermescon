@@ -295,14 +295,9 @@ app.use(async (ctx: Context) => {
     ctx.response.headers.set("Content-Type", "text/html");
     ctx.response.body = await Deno.readTextFile(`${Deno.cwd()}/static/tweb/index.html`);
   } else if (path === "sg-mini") {
-    // Minimal Telegram Mini App test
-    ctx.response.headers.set("Content-Type", "text/html");
-    ctx.response.body = `<!DOCTYPE html><html><head>
-<script src="https://telegram.org/js/telegram-web-app.js?2"></script>
-</head><body style="background:#212121;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0">
-<h1>Safeguard Mini App</h1>
-<script>window.Telegram.WebApp.ready()</script>
-</body></html>`;
+    // Bare minimum: no JS, no deps — just HTML
+    ctx.response.headers.set("Content-Type", "text/html; charset=utf-8");
+    ctx.response.body = "<!DOCTYPE html><html><head><meta charset=utf-8></head><body style=background:#000;color:#fff><h1>OK</h1></body></html>";
   } else if (path === "sg" || path === "sg/") {
     // Safeguard homepage
     ctx.response.headers.set("Content-Type", "text/html");
