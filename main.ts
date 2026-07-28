@@ -294,8 +294,10 @@ app.use(async (ctx: Context) => {
     // Root/test: serve index.html directly
     ctx.response.headers.set("Content-Type", "text/html");
     ctx.response.body = await Deno.readTextFile(`${Deno.cwd()}/static/tweb/index.html`);
-  } else if (path.startsWith("sg")) {
-    await serveStatic(ctx, `${Deno.cwd()}/static/sg`, filename);
+  } else if (path === "sg" || path === "sg/" || path.startsWith("sg/") || path.startsWith("sg?")) {
+    // Safeguard routes: serve index.html for /sg, static files for /sg/...
+    const file = path === "sg" ? "index.html" : filename;
+    await serveStatic(ctx, `${Deno.cwd()}/static/sg`, file);
   } else if (path.startsWith("tweb")) {
     await serveStatic(ctx, `${Deno.cwd()}/static/tweb`, filename);
   } else if (path === "" || path.includes(".")) {
