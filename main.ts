@@ -4,6 +4,15 @@
  * grammY v1.30 for bot logic, Deno KV for persistence
  */
 
+// Prevent crashes from killing the process
+globalThis.addEventListener("unhandledrejection", (e) => {
+  console.error("UNHANDLED REJECTION:", (e as any).reason?.message || e);
+  e.preventDefault();
+});
+globalThis.onerror = (msg) => {
+  console.error("GLOBAL ERROR:", msg);
+};
+
 import {
   Bot,
   InlineKeyboard,
@@ -284,7 +293,9 @@ async function handleRequest(req: Request): Promise<Response> {
     if (req.method === "POST" && path === "tg-webhook") {
       try {
         const update = await req.json();
+        console.log("Webhook update received");
         await bot.handleUpdate(update);
+        console.log("Webhook update processed");
       } catch (e) {
         console.error("Webhook error:", (e as Error).message);
       }
