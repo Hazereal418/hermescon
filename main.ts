@@ -357,11 +357,8 @@ if (DEBUG) {
   console.log("Production mode — using webhook");
 }
 
-// Deno Deploy v2: export default fetch handler
-// Local: Deno.serve() will use the same handler
-export default { fetch: handleRequest };
+// Deno Deploy v2 uses the export above.
+// For local dev: deno serve main.ts  OR  uncomment below:
+// if (Deno.env.get("DEBUG")) Deno.serve(handleRequest);
 
-// For local development, start the server
-if (DEBUG || !Deno.env.get("DENO_DEPLOYMENT_ID")) {
-  Deno.serve(handleRequest);
-}
+export default { fetch: handleRequest };
