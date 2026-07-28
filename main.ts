@@ -273,7 +273,8 @@ function serveFile(root: string, filename: string): Promise<Response> {
 
 async function handleRequest(req: Request): Promise<Response> {
   const url = new URL(req.url);
-  const path = url.pathname.slice(1); // strip leading /
+  const path = url.pathname.slice(1);
+  console.log(`→ ${req.method} /${path || "(root)"}`);
 
   try {
     // Webhook (POST only)
