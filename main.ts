@@ -1,4 +1,3 @@
-Nn
 import {
   Bot,
   InlineKeyboard,
