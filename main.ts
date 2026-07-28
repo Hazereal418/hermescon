@@ -4,20 +4,18 @@ import {
   InputFile,
   webhookCallback,
 } from "https://deno.land/x/grammy@v1.30.0/mod.ts";
+import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
 // Polyfill: trick Oak into detecting Deno instead of Node.js
-// Without this, Oak v17 uses http_server_node.ts which breaks ALL responses
+// Must run BEFORE Oak is imported — Oak checks WebSocketPair at import time
 if (!(globalThis as any).WebSocketPair) {
   (globalThis as any).WebSocketPair = class WebSocketPair {};
 }
 
-import {
-  Application,
-  Context,
-  isHttpError,
-  Status,
-} from "https://deno.land/x/oak@v17.0.0/mod.ts";
-import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
+// Dynamic import: Oak loads AFTER the polyfill is in place
+const { Application, Context, isHttpError, Status } = await import(
+  "https://deno.land/x/oak@v17.0.0/mod.ts"
+);
 
 // Inline bot detection (avoids npm:isbot dependency that fails on Deno Deploy)
 const BOT_REGEX = /bot|crawler|spider|crawl|scrape|facebookexternalhit|twitterbot|telegrambot|whatsapp|slack|discord|linkedinbot|googlebot|bingbot|duckduckgo|baiduspider|yandex|pinterest|embedly|preview|prerender/i;
