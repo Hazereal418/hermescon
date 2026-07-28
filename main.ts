@@ -146,4 +146,6 @@ async function fetchHandler(req: Request): Promise<Response> {
   }
 }
 
+// Both patterns for Deno Deploy v2 compatibility
+Deno.serve(fetchHandler);
 export default { fetch: fetchHandler };
