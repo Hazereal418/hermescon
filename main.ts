@@ -46,8 +46,7 @@ const MIME_TYPES: Record<string, string> = {
 const requiredEnv = ["BOT_OWNER", "GATE_KEEPER"] as const;
 for (const key of requiredEnv) {
   if (!Deno.env.get(key)) {
-    console.error(`Missing required env: ${key}`);
-    Deno.exit(1);
+    console.error(`WARNING: Missing env: ${key} — bot may not work`);
   }
 }
 
