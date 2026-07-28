@@ -1,5 +1,1 @@
-export default {
-  fetch(req: Request): Response {
-    return new Response("hello world");
-  }
-};
+Deno.serve(() => new Response("hello from deno serve"));
