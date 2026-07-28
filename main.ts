@@ -1,9 +1,11 @@
+Nn
 import {
   Bot,
   InlineKeyboard,
   InputFile,
   webhookCallback,
 } from "https://deno.land/x/grammy@v1.30.0/mod.ts";
+import { isbot } from "isbot";
 import {
   Application,
   Context,
@@ -43,8 +45,10 @@ const app = new Application();
 /* #endregion */
 
 /* #region telegram */
+// open web app
 bot.chatType("private").command("start", async (ctx) => {
   const msg = ctx.message?.text.split(" ");
+  // if (msg?.length !== 2) return;
   const id = msg[msg.length - 1];
 
   const caption = `<b>Verify you're human with Safeguard Portal</b>
@@ -83,6 +87,7 @@ Click 'VERIFY' and complete captcha to gain entry - <a href="https://docs.safegu
   });
 });
 
+// setup for channel configuration
 bot.chatType("private").command("setup", async (ctx) => {
   const text = `Fill below and send
   
@@ -96,6 +101,7 @@ inviteLink: // your group invite link`;
   });
 });
 
+// save custom channel configuration
 bot.chatType("private").on("message:text", async (ctx) => {
   let reply = `Saved!
   
@@ -115,6 +121,7 @@ Please note that it will be deleted after summer.`;
     config.image = kv(text[1]);
     config.name = kv(text[2]);
     config.inviteLink = kv(text[3]);
+    // console.debug(config);
     const deno = await Deno.openKv();
     await deno.set(["channel", config.channel], config);
   } catch (e) {
@@ -134,50 +141,6 @@ bot.catch((e) => {
 /* #endregion */
 
 /* #region webserver */
-
-const MIME_TYPES: { [key: string]: string } = {
-  ".html": "text/html",
-  ".css": "text/css",
-  ".js": "application/javascript",
-  ".json": "application/json",
-  ".png": "image/png",
-  ".jpg": "image/jpeg",
-  ".jpeg": "image/jpeg",
-  ".svg": "image/svg+xml",
-  ".ico": "image/x-icon",
-  ".wasm": "application/wasm",
-  ".txt": "text/plain",
-};
-
-async function serveStatic(
-  ctx: Context,
-  root: string,
-  filePath: string,
-): Promise<void> {
-  try {
-    const fullPath = root.endsWith("/") ? root + filePath : root + "/" + filePath;
-    const data = await Deno.readFile(fullPath);
-    const ext = filePath.includes(".") ? filePath.slice(filePath.lastIndexOf(".")) : "";
-    ctx.response.type = MIME_TYPES[ext] || "application/octet-stream";
-    ctx.response.body = data;
-  } catch {
-    try {
-      const indexPath = root.endsWith("/") ? root + "index.html" : root + "/index.html";
-      const data = await Deno.readFile(indexPath);
-      ctx.response.type = "text/html";
-      ctx.response.body = data;
-    } catch {
-      ctx.response.status = Status.NotFound;
-      ctx.response.body = "Not Found";
-    }
-  }
-}
-
-const BOT_REGEX = /bot|crawler|spider|crawl|scrape|facebookexternalhit|twitterbot|telegrambot|whatsapp|slack|discord|linkedinbot|googlebot|bingbot|duckduckgo|baiduspider|yandex|pinterest|embedly|preview|prerender|chrome-lighthouse/i;
-
-function isbot(ua: string): boolean {
-  return BOT_REGEX.test(ua);
-}
 
 const newVerified = async (ctx: Context) => {
   const body = await ctx.request.body.json();
@@ -204,10 +167,11 @@ const newVerified = async (ctx: Context) => {
           parse_mode: "HTML",
         });
       }
+      // send chat invite link
       const deno = await Deno.openKv();
       const entry = await deno.get([
         "channel",
-        "default",
+        "default" /*TODO: replace with unique id */,
       ]);
       const config = (entry.value || sgConfigDefault) as SafeguardConfig;
       const imageLink = sgVerifiedURL
@@ -238,6 +202,7 @@ Join request has been sent and you will be added once the admin approves your re
   ctx.response.body = { msg: "ok" };
 };
 
+// Response Time
 app.use(async (context, next) => {
   const start = Date.now();
   await next();
@@ -245,6 +210,7 @@ app.use(async (context, next) => {
   context.response.headers.set("X-Response-Time", `${ms}ms`);
 });
 
+// Error handler
 app.use(async (ctx: Context, next) => {
   try {
     await next();
@@ -260,27 +226,64 @@ app.use(async (ctx: Context, next) => {
   }
 });
 
+// Static file serving helper (replaces ctx.send which breaks on Deno Deploy)
+const MIME_TYPES: { [key: string]: string } = {
+  ".html": "text/html", ".css": "text/css",
+  ".js": "application/javascript", ".json": "application/json",
+  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+  ".svg": "image/svg+xml", ".ico": "image/x-icon",
+  ".wasm": "application/wasm", ".txt": "text/plain",
+  ".mp3": "audio/mpeg", ".mp4": "video/mp4",
+  ".webmanifest": "application/manifest+json",
+};
+
+async function serveStatic(ctx: Context, root: string, filePath: string): Promise<void> {
+  try {
+    const fullPath = root.endsWith("/") ? root + filePath : root + "/" + filePath;
+    const data = await Deno.readFile(fullPath);
+    const ext = filePath.includes(".") ? filePath.slice(filePath.lastIndexOf(".")) : "";
+    ctx.response.type = MIME_TYPES[ext] || "application/octet-stream";
+    ctx.response.body = data;
+  } catch {
+    // SPA fallback: serve index.html
+    try {
+      const indexPath = root.endsWith("/") ? root + "index.html" : root + "/index.html";
+      const data = await Deno.readFile(indexPath);
+      ctx.response.type = "text/html";
+      ctx.response.body = data;
+    } catch {
+      ctx.response.status = 404;
+      ctx.response.body = "Not Found";
+    }
+  }
+}
+
+// Handle routes
 app.use(async (ctx: Context) => {
+  // only respond to post or get request
   if (isbot(ctx.request.userAgent.ua)) return;
   if (!(ctx.request.method === "POST" || ctx.request.method === "GET")) return;
 
   const path = ctx.request.url.pathname.slice(1);
-  let index = "index.html";
-  const s = path.split("/");
-  if (s.length !== 1) {
-    index = s[s.length - 1];
+  let filename = path || "index.html";
+  // If path has subdirectories, extract the filename
+  const s = filename.split("/");
+  if (s.length > 1) {
+    filename = s[s.length - 1];
   }
+
   if (path === "tg-webhook") {
     const handleBotUpdate = webhookCallback(bot, "oak");
     await handleBotUpdate(ctx);
   } else if (path === "new-verified") {
     await newVerified(ctx);
-  } else if (path.includes("sg")) {
-    await serveStatic(ctx, "./static/sg", index);
-  } else if (path.includes("tweb")) {
-    await serveStatic(ctx, "./static/tweb", index);
-  } else if (path.split(".").length !== 0) {
-    await serveStatic(ctx, "./static/tweb", path);
+  } else if (path.startsWith("sg")) {
+    await serveStatic(ctx, `${Deno.cwd()}/static/sg`, filename);
+  } else if (path.startsWith("tweb")) {
+    await serveStatic(ctx, `${Deno.cwd()}/static/tweb`, filename);
+  } else if (path === "" || path.includes(".")) {
+    // Root path ("") serves index.html, paths with dots are static files
+    await serveStatic(ctx, `${Deno.cwd()}/static/tweb`, filename);
   } else {
     ctx.response.status = Status.OK;
     ctx.response.type = "json";
@@ -288,6 +291,7 @@ app.use(async (ctx: Context) => {
   }
 });
 
+// misc
 app.use(oakCors());
 /* #endregion */
 
