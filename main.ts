@@ -349,6 +349,10 @@ async function handleRequest(req: Request): Promise<Response> {
 console.log(`Safeguard bot starting...`);
 console.log(`Bot: @${botName} | Owners: ${botOwner}`);
 
+// Initialize bot (required before handleUpdate)
+await bot.init();
+console.log("Bot initialized");
+
 if (DEBUG) {
   console.log("DEBUG mode — starting bot in polling mode");
   bot.start({
