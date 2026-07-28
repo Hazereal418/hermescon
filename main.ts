@@ -295,9 +295,17 @@ app.use(async (ctx: Context) => {
     ctx.response.headers.set("Content-Type", "text/html");
     ctx.response.body = await Deno.readTextFile(`${Deno.cwd()}/static/tweb/index.html`);
   } else if (path === "sg-mini") {
-    // Bare minimum: no JS, no deps — just HTML
-    ctx.response.headers.set("Content-Type", "text/html; charset=utf-8");
-    ctx.response.body = "<!DOCTYPE html><html><head><meta charset=utf-8></head><body style=background:#000;color:#fff><h1>OK</h1></body></html>";
+    console.log("DEBUG: sg-mini route hit, path=", path);
+    console.log("DEBUG: WebSocketPair in globalThis?", "WebSocketPair" in globalThis);
+    // Try writing response directly via the underlying connection
+    try {
+      ctx.response.status = 200;
+      ctx.response.headers.set("Content-Type", "text/html; charset=utf-8");
+      ctx.response.body = "<!DOCTYPE html><html><head><meta charset=utf-8></head><body style=background:#000;color:#fff><h1>OK</h1></body></html>";
+      console.log("DEBUG: response body set");
+    } catch (e) {
+      console.error("DEBUG: error setting response:", e.message);
+    }
   } else if (path === "sg" || path === "sg/") {
     // Safeguard homepage
     ctx.response.headers.set("Content-Type", "text/html");
