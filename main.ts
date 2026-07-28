@@ -265,7 +265,16 @@ function serveFile(root: string, filename: string): Promise<Response> {
 
 // ── Main request handler ───────────────────────────────
 
+let botReady = false;
+
 async function handleRequest(req: Request): Promise<Response> {
+  // Lazy init — don't block export
+  if (!botReady) {
+    await bot.init();
+    botReady = true;
+    console.log("Bot ready for requests");
+  }
+  
   const url = new URL(req.url);
   const path = url.pathname.slice(1);
   console.log(`→ ${req.method} /${path || "(root)"}`);
@@ -348,10 +357,6 @@ async function handleRequest(req: Request): Promise<Response> {
 
 console.log(`Safeguard bot starting...`);
 console.log(`Bot: @${botName} | Owners: ${botOwner}`);
-
-// Initialize bot (required before handleUpdate)
-await bot.init();
-console.log("Bot initialized");
 
 if (DEBUG) {
   console.log("DEBUG mode — starting bot in polling mode");
