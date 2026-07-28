@@ -8,7 +8,6 @@ import {
   Bot,
   InlineKeyboard,
   InputFile,
-  webhookCallback,
 } from "https://deno.land/x/grammy@v1.30.0/mod.ts";
 
 // ── Types ──────────────────────────────────────────────
@@ -172,11 +171,7 @@ bot.catch((err) => {
   console.error("Bot error:", err.message);
 });
 
-// ── Webhook handler (grammY "std" adapter for Deno.serve) ──
-
-const handleWebhook = webhookCallback(bot, "std");
-
-// ── new-verified endpoint ──────────────────────────────
+// ── Request handlers ───────────────────────────────────
 
 async function handleNewVerified(req: Request): Promise<Response> {
   try {
@@ -277,9 +272,15 @@ async function handleRequest(req: Request): Promise<Response> {
   console.log(`→ ${req.method} /${path || "(root)"}`);
 
   try {
-    // Webhook (POST only)
+    // Webhook (POST only) — handle update directly
     if (req.method === "POST" && path === "tg-webhook") {
-      return await handleWebhook(req);
+      try {
+        const update = await req.json();
+        await bot.handleUpdate(update);
+      } catch (e) {
+        console.error("Webhook error:", (e as Error).message);
+      }
+      return new Response("ok");
     }
 
     // API endpoint (POST only)
