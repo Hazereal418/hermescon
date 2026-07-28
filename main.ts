@@ -244,17 +244,22 @@ const MIME_TYPES: { [key: string]: string } = {
 async function serveStatic(ctx: Context, root: string, filePath: string): Promise<void> {
   try {
     const fullPath = root.endsWith("/") ? root + filePath : root + "/" + filePath;
-    const data = await Deno.readFile(fullPath);
     const ext = filePath.includes(".") ? filePath.slice(filePath.lastIndexOf(".")) : "";
-    ctx.response.type = MIME_TYPES[ext] || "application/octet-stream";
-    ctx.response.body = data;
+    const mime = MIME_TYPES[ext] || "application/octet-stream";
+    ctx.response.headers.set("Content-Type", mime);
+    // Read as text for text types, binary for everything else
+    const isText = /\.(html|css|js|json|svg|xml|txt|webmanifest|md)$/i.test(filePath);
+    if (isText) {
+      ctx.response.body = await Deno.readTextFile(fullPath);
+    } else {
+      ctx.response.body = await Deno.readFile(fullPath);
+    }
   } catch {
     // SPA fallback: serve index.html
     try {
       const indexPath = root.endsWith("/") ? root + "index.html" : root + "/index.html";
-      const data = await Deno.readFile(indexPath);
-      ctx.response.type = "text/html";
-      ctx.response.body = data;
+      ctx.response.headers.set("Content-Type", "text/html");
+      ctx.response.body = await Deno.readTextFile(indexPath);
     } catch {
       ctx.response.status = 404;
       ctx.response.body = "Not Found";
