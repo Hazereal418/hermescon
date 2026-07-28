@@ -364,16 +364,12 @@ console.log(`Safeguard bot starting...`);
 console.log(`Bot: @${botName} | Owners: ${botOwner}`);
 
 if (DEBUG) {
-  console.log("DEBUG mode — starting bot in polling mode");
-  bot.start({
-    onStart: () => console.log("Bot polling started"),
-  });
+  console.log("DEBUG mode — starting bot polling + HTTP server");
+  bot.start({ onStart: () => console.log("Bot polling started") });
+  // Deno.serve blocks, so don't await bot.start
+  Deno.serve(handleRequest);
 } else {
   console.log("Production mode — using webhook");
 }
-
-// Deno Deploy v2 uses the export above.
-// For local dev: deno serve main.ts  OR  uncomment below:
-// if (Deno.env.get("DEBUG")) Deno.serve(handleRequest);
 
 export default { fetch: handleRequest };
