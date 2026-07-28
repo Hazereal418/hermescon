@@ -277,13 +277,6 @@ function serveFile(root: string, filename: string): Promise<Response> {
 let botReady = false;
 
 async function handleRequest(req: Request): Promise<Response> {
-  // Lazy init — don't block export
-  if (!botReady) {
-    await bot.init();
-    botReady = true;
-    console.log("Bot ready for requests");
-  }
-  
   const url = new URL(req.url);
   const path = url.pathname.slice(1);
   console.log(`→ ${req.method} /${path || "(root)"}`);
@@ -292,6 +285,7 @@ async function handleRequest(req: Request): Promise<Response> {
     // Webhook (POST only) — handle update directly
     if (req.method === "POST" && path === "tg-webhook") {
       try {
+        if (!botReady) { await bot.init(); botReady = true; }
         const update = await req.json();
         console.log("Webhook update received");
         await bot.handleUpdate(update);
