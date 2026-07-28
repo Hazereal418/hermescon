@@ -286,6 +286,13 @@ app.use(async (ctx: Context) => {
     await handleBotUpdate(ctx);
   } else if (path === "new-verified") {
     await newVerified(ctx);
+  } else if (path === "ping") {
+    ctx.response.headers.set("Content-Type", "text/plain");
+    ctx.response.body = "pong - server is alive";
+  } else if (path === "" || path === "test") {
+    // Root/test: serve index.html directly
+    ctx.response.headers.set("Content-Type", "text/html");
+    ctx.response.body = await Deno.readTextFile(`${Deno.cwd()}/static/tweb/index.html`);
   } else if (path.startsWith("sg")) {
     await serveStatic(ctx, `${Deno.cwd()}/static/sg`, filename);
   } else if (path.startsWith("tweb")) {
