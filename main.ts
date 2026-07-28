@@ -146,6 +146,7 @@ async function fetchHandler(req: Request): Promise<Response> {
   }
 }
 
-// Both patterns for Deno Deploy v2 compatibility
-Deno.serve(fetchHandler);
+// Debug: log startup
+console.log("SAFEGUARD: handler registered, waiting for requests...");
+
 export default { fetch: fetchHandler };
