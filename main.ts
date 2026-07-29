@@ -357,12 +357,11 @@ console.log(`Safeguard bot starting...`);
 console.log(`Bot: @${botName} | Owners: ${botOwner}`);
 
 if (DEBUG) {
-  console.log("DEBUG mode — starting bot polling + HTTP server");
+  console.log("DEBUG mode — starting bot polling");
   bot.start({ onStart: () => console.log("Bot polling started") });
-  // Deno.serve blocks, so don't await bot.start
-  Deno.serve(handleRequest);
 } else {
   console.log("Production mode — using webhook");
 }
 
-export default { fetch: handleRequest };
+// Start HTTP server (works on Render, Deno Deploy, and local)
+Deno.serve(handleRequest);
