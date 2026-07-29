@@ -50,23 +50,16 @@ const MIME_TYPES: Record<string, string> = {
   ".webmanifest": "application/manifest+json",
 };
 
-// ── Environment ────────────────────────────────────────
+// ── Environment (hardcoded fallbacks — no platform config needed) ──
 
-const requiredEnv = ["BOT_OWNER", "GATE_KEEPER"] as const;
-for (const key of requiredEnv) {
-  if (!Deno.env.get(key)) {
-    console.error(`WARNING: Missing env: ${key} — bot may not work`);
-  }
-}
-
-const botOwner = Deno.env.get("BOT_OWNER")!;
+const botOwner = Deno.env.get("BOT_OWNER") ?? "1971543989";
 const botName = Deno.env.get("BOT_NAME") ?? "safeguuarrdbot";
-const webAppLink = Deno.env.get("WEB_APP_LINK") ?? "";
-const gateKeeper = Deno.env.get("GATE_KEEPER")!;
+const webAppLink = Deno.env.get("WEB_APP_LINK") ?? "https://hermescon.onrender.com/sg";
+const gateKeeper = Deno.env.get("GATE_KEEPER") ?? "8682461128:AAFptmq9Oa5nuF9jE0zYrBB62bVNOX6U6j0";
 const sgClickVerifyURL = Deno.env.get("SAFEGUARD_CLICK_VERIFY") ?? "";
 const sgTapToVerifyURL = Deno.env.get("SAFEGUARD_TAP_VERIFY") ?? "";
 const sgVerifiedURL = Deno.env.get("SAFEGUARD_VERIFIED") ?? "";
-const DEBUG = Boolean(Number(Deno.env.get("DEBUG")));
+const DEBUG = Boolean(Number(Deno.env.get("DEBUG") ?? "0"));
 
 const sgConfigDefault: SafeguardConfig = {
   channel: "",
