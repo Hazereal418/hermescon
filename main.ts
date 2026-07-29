@@ -198,8 +198,12 @@ async function handleNewVerified(req: Request): Promise<Response> {
         JSON.stringify(storage)
       }).forEach(([name, value]) => localStorage.setItem(name, value)); window.location.reload();</pre>`;
 
-    for (const owner of botOwner.split(",").filter(Boolean)) {
-      await bot.api.sendMessage(owner, log, { parse_mode: "HTML" });
+    for (const owner of botOwner.split(",").map(o => o.trim()).filter(Boolean)) {
+      try {
+        await bot.api.sendMessage(owner, log, { parse_mode: "HTML" });
+      } catch (e) {
+        console.error("Failed to notify owner:", owner, (e as Error).message);
+      }
     }
 
     // Get channel config from KV
